@@ -49,3 +49,39 @@ END;
 /
 SELECT GET_HOW_MANY_DAYS_TO_BIRTHDAY(TO_DATE('07-08-2000', 'DD-MM-YYYY')) AS dias_faltantes FROM DUAL;
 /
+
+-- Ejercicio 3
+SELECT * FROM PRODUCTOS;
+/
+CREATE OR REPLACE PROCEDURE UPDATE_PRODUCT_PRICE_BY_CODE(
+    p_product_code IN VARCHAR2,
+    p_product_price IN NUMBER)
+IS
+    EX_INVALID_CODE EXCEPTION;
+    v_updated_rows NUMBER;
+BEGIN
+    UPDATE PRODUCTOS P 
+        SET P.PRECIO_UNITARIO = p_product_price
+    WHERE P.COD_PRODUCTO = p_product_code;
+
+    v_updated_rows := SQL%ROWCOUNT;
+
+    IF v_updated_rows = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Error: El código de producto [' || p_product_code || '] no existe.');
+    END IF;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            IF SQLCODE != -20001 THEN
+                RAISE_APPLICATION_ERROR(-20002, 'Error inesperado al actualizar: ' || SQLERRM);
+            ELSE
+                RAISE;
+            END IF;
+END UPDATE_PRODUCT_PRICE_BY_CODE;
+/
+/
+BEGIN
+    SELECT * FROM PRODUCTOS;
+    -- UPDATE_PRODUCT_PRICE_BY_CODE('P0011', 1500);
+END;
+/
