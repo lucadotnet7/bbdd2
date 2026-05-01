@@ -126,3 +126,31 @@ BEGIN
         Disco Duro SATA 120 GB es: ' || GET_PRICE_BY_PRODUCT_ID('P0012') || ' dólares.');
 END;
 /
+/
+CREATE OR REPLACE FUNCTION GET_NEW_EMPLOYEES_AT_YEAR_BY_DEPARTMENT(p_department_id IN NUMBER)
+RETURN NUMBER
+IS
+    v_actual_year VARCHAR2(2);
+    v_new_employees NUMBER(3);
+BEGIN
+    v_actual_year := TO_CHAR(TRUNC(SYSDATE), 'YY');
+
+    SELECT COUNT(E.ID)
+    INTO v_new_employees
+    FROM EMPLEADOS E
+    WHERE 
+        TO_CHAR(E.FECHA_ALTA, 'YY') = v_actual_year
+        AND
+        E.DEPARTAMENTO_ID = p_department_id;
+
+    RETURN v_new_employees;
+END GET_NEW_EMPLOYEES_AT_YEAR_BY_DEPARTMENT;
+/
+/
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(
+        'La cantidad de empleados que ingresaron 
+        este año al departamento de RRHH son: ' 
+        || GET_NEW_EMPLOYEES_AT_YEAR_BY_DEPARTMENT(190));
+END;
+/
