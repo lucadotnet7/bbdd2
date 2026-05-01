@@ -142,3 +142,234 @@ BEGIN
     END IF;
 END;
 /
+
+-- Ejercicio 9
+/
+DECLARE
+    V_PRIMER_NUMERO NUMBER(2,0) := 0;
+    V_SEGUNDO_NUMERO NUMBER(2, 0) := 9;
+    V_RESULTADO NUMBER(2,0);
+BEGIN
+    IF (V_PRIMER_NUMERO > V_SEGUNDO_NUMERO AND V_SEGUNDO_NUMERO > 0) THEN
+        V_RESULTADO := V_PRIMER_NUMERO / V_SEGUNDO_NUMERO;
+        DBMS_OUTPUT.PUT_LINE(
+            'La división entre: ' || V_PRIMER_NUMERO || 
+            ' y ' || V_SEGUNDO_NUMERO || ' es: ' || V_RESULTADO);
+    ELSIF (V_SEGUNDO_NUMERO > V_PRIMER_NUMERO AND V_PRIMER_NUMERO > 0) THEN
+        V_RESULTADO := V_SEGUNDO_NUMERO / V_PRIMER_NUMERO;
+        DBMS_OUTPUT.PUT_LINE(
+            'La división entre: ' || V_SEGUNDO_NUMERO || 
+            ' y ' || V_PRIMER_NUMERO || ' es: ' || V_RESULTADO);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('ERROR: El divisor es 0');
+    END IF;
+END;
+/
+
+-- Ejercicio 10
+/
+DECLARE
+    V_EDAD NUMBER(2,0);
+    V_INGRESO NUMBER(8,2);
+BEGIN
+    V_EDAD := 19;
+    V_INGRESO := 800000;
+
+    IF(V_EDAD > 18 AND V_INGRESO >= 800000) THEN
+        DBMS_OUTPUT.PUT_LINE('Se debe tributar un impuesto. Edad: ' || V_EDAD || ' e ingresos: ' || V_INGRESO);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('No se debe tributar un impuesto. Edad: ' || V_EDAD || ' e ingresos: ' || V_INGRESO);
+    END IF;
+END;
+/
+
+-- Ejercicio 11
+/
+DECLARE
+    V_NOTA NUMBER(2) := 10;
+BEGIN
+    CASE V_NOTA
+        WHEN 10 THEN
+            DBMS_OUTPUT.PUT_LINE('Sobresaliente');
+        WHEN 9 THEN
+            DBMS_OUTPUT.PUT_LINE('Excelente');
+        WHEN 8 THEN
+            DBMS_OUTPUT.PUT_LINE('Muy Bueno');
+        WHEN 7 THEN
+            DBMS_OUTPUT.PUT_LINE('Bueno');
+        WHEN 6 THEN
+            DBMS_OUTPUT.PUT_LINE('Aprobado');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Reprobado');
+    END CASE;
+END;
+/
+
+-- Ejercicio 12
+/
+DECLARE
+    V_PAR NUMBER(2);
+BEGIN
+    FOR i IN 1..10 LOOP
+        V_PAR := i * 2;
+        DBMS_OUTPUT.PUT_LINE('Número par: ' || V_PAR);
+    END LOOP;
+END;
+/
+
+-- Ejercicio 13
+/
+DECLARE
+    V_IMPAR NUMBER(2);
+BEGIN <<numeros_impares>>
+    FOR i IN REVERSE 1..10 LOOP
+        V_IMPAR := i * 3;
+        DBMS_OUTPUT.PUT_LINE('Número impar: ' || V_IMPAR);
+    END LOOP;
+END numeros_impares;
+/
+
+-- Ejercicio 14
+/
+CREATE OR REPLACE PROCEDURE MULTIPLY(p_number NUMBER)
+IS
+    V_RESULTADO NUMBER := 0;
+BEGIN
+    FOR i IN 1..12 LOOP
+        V_RESULTADO := p_number * i;
+        DBMS_OUTPUT.PUT_LINE('El número: ' || p_number || ' multiplicado por ' || i || ' es: ' || V_RESULTADO);
+    END LOOP;
+END;
+/
+/
+BEGIN
+    MULTIPLY(10);
+END;
+/
+
+-- Ejercicio 15
+/
+DECLARE
+    V_ORIGINAL_TEXT VARCHAR2(16) := 'BASE DE DATOS II';
+    V_REVERSE_TEXT VARCHAR2(16);
+BEGIN
+    SELECT REVERSE(V_ORIGINAL_TEXT) INTO V_REVERSE_TEXT FROM DUAL;
+    DBMS_OUTPUT.PUT_LINE(V_REVERSE_TEXT);
+END;
+/
+
+-- Ejercicio 16
+/
+CREATE OR REPLACE PROCEDURE SP_GET_FIRST_TEN_PAR(p_asc_desc IN VARCHAR2)
+IS
+    EX_INVALID_PARAM EXCEPTION;
+    V_PAR NUMBER(2);
+BEGIN
+
+    IF UPPER(p_asc_desc) = 'ASC' THEN
+        FOR i IN 1..10 LOOP
+            V_PAR := i * 2;
+            DBMS_OUTPUT.PUT_LINE('Número par: ' || V_PAR);
+        END LOOP;
+    ELSIF UPPER(p_asc_desc) = 'DESC' THEN
+        FOR i IN REVERSE 1..10 LOOP
+            V_PAR := i * 2;
+            DBMS_OUTPUT.PUT_LINE('Número par: ' || V_PAR);
+        END LOOP;
+    ELSE
+        RAISE EX_INVALID_PARAM;
+    END IF;
+
+    EXCEPTION
+        WHEN EX_INVALID_PARAM THEN
+            DBMS_OUTPUT.PUT_LINE('El parámetro ingresado es inválido. Valores permitidos [ASC, asc, DESC, desc]');
+END;
+/
+/
+BEGIN
+    SP_GET_FIRST_TEN_PAR('asdadas');
+END;
+/
+
+-- Ejercicio 17
+/
+CREATE OR REPLACE FUNCTION GET_QUARTER(p_date IN DATE)
+RETURN NUMBER
+IS
+    V_QUARTER INTEGER;
+BEGIN
+    V_QUARTER := TO_NUMBER(TO_CHAR(p_date, 'Q'));
+    RETURN V_QUARTER;
+END;
+/
+/
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('El trimestre de la fecha ' || SYSDATE || ' es: ' || GET_QUARTER(SYSDATE));
+END;
+/
+
+-- Ejercicio 18
+/
+CREATE OR REPLACE FUNCTION GET_CHARS_LENGTH(p_text IN VARCHAR2)
+RETURN NUMBER
+IS
+    V_TEXT_WITHOUT_SPACINGS VARCHAR2(200);
+BEGIN
+    V_TEXT_WITHOUT_SPACINGS := REPLACE(p_text, ' ', '');
+
+    RETURN LENGTH(V_TEXT_WITHOUT_SPACINGS);
+END;
+/
+/
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('La cantidad de caracteres del texto hola mundo es: ' || GET_CHARS_LENGTH('hola mundo'));
+END;
+/
+
+-- Ejercicio 19
+/
+CREATE OR REPLACE FUNCTION REVERSE_WORD(p_word IN VARCHAR2)
+RETURN VARCHAR2
+IS
+    V_REVERSED VARCHAR(200);
+BEGIN
+    IF p_word LIKE '% %' THEN
+        RETURN p_word;
+    ELSE
+        SELECT REVERSE(p_word) INTO V_REVERSED FROM DUAL;
+        RETURN V_REVERSED;
+    END IF;
+END;
+/
+/
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Palabre original: MATE. ' || 'palabra al revés: ' || REVERSE_WORD('MATE'));
+END;
+/
+/
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Palabre original: MATE COCIDO. ' || 'palabra al revés: ' || REVERSE_WORD('MATE COCIDO'));
+END;
+/
+
+-- Ejercicio 20
+/
+CREATE OR REPLACE FUNCTION GET_YEARS(p_born_date IN DATE)
+RETURN NUMBER
+IS
+    V_YEARS NUMBER;
+BEGIN
+    V_YEARS := TRUNC(MONTHS_BETWEEN(SYSDATE, p_born_date) / 12);
+
+    RETURN V_YEARS;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN NULL;
+END;
+/
+/
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Messi nació en 1987-06-24 y tiene ' || GET_YEARS(TO_DATE('1987-06-24', 'YYYY-MM-DD')) || ' años');
+END;
+/
