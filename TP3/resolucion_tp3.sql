@@ -85,3 +85,44 @@ BEGIN
     -- UPDATE_PRODUCT_PRICE_BY_CODE('P0011', 1500);
 END;
 /
+
+-- Ejercicio 4
+/
+CREATE OR REPLACE FUNCTION GET_PRICE_BY_PRODUCT_ID (p_product_code IN VARCHAR2)
+RETURN NUMBER
+IS
+    v_product_exist NUMBER;
+    v_product_price NUMBER;
+BEGIN
+    SELECT COUNT(P.COD_PRODUCTO) 
+    INTO v_product_exist 
+    FROM PRODUCTOS P
+    WHERE P.COD_PRODUCTO = p_product_code;
+
+    IF v_product_exist = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001,  'Error: El código de producto [' || p_product_code || '] no existe.');
+    END IF;
+
+    SELECT P.PRECIO_UNITARIO 
+    INTO v_product_price
+    FROM PRODUCTOS P
+    WHERE P.COD_PRODUCTO = p_product_code;
+
+    RETURN v_product_price;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+            IF SQLCODE != -20001 THEN
+                RAISE_APPLICATION_ERROR(-20002, 'Error inesperado al actualizar: ' || SQLERRM);
+            ELSE
+                RAISE;
+            END IF;
+END GET_PRICE_BY_PRODUCT_ID;
+/
+/
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('
+        El precio unitario del producto 
+        Disco Duro SATA 120 GB es: ' || GET_PRICE_BY_PRODUCT_ID('P0012') || ' dólares.');
+END;
+/
