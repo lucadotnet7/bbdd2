@@ -155,3 +155,157 @@ BEGIN
         || GET_NEW_EMPLOYEES_AT_YEAR_BY_DEPARTMENT(190));
 END;
 /
+
+-- Ejercicio 6
+CREATE OR REPLACE PROCEDURE GET_THREE_MOST_SOLD_PRODUCTS
+IS
+    CURSOR C_SOLD_PRODUCTS IS
+        SELECT P.DESCRIPCION, COUNT(DF.COD_PRODUCTO) AS TOTAL_VENDIDOS 
+        FROM DETALLE_FACTURAS DF
+        JOIN PRODUCTOS P 
+        ON P.COD_PRODUCTO = DF.COD_PRODUCTO
+        GROUP BY P.DESCRIPCION
+        ORDER BY TOTAL_VENDIDOS DESC
+        FETCH FIRST 3 ROWS ONLY;
+BEGIN
+    FOR reg IN C_SOLD_PRODUCTS LOOP
+        DBMS_OUTPUT.PUT_LINE(
+            'Producto: ' || reg.DESCRIPCION || 
+            ' - Vendidos: ' || reg.TOTAL_VENDIDOS
+        );
+    END LOOP;
+END GET_THREE_MOST_SOLD_PRODUCTS;
+/
+
+BEGIN
+    GET_THREE_MOST_SOLD_PRODUCTS();
+END;
+/
+
+-- Ejercicio 7
+CREATE OR REPLACE PROCEDURE SP_INCREASE_PRODUCTS_PRICE_BY_PERCENTAGE(
+    p_percentage NUMBER
+)
+IS
+    v_percentage NUMBER;
+    v_original_price NUMBER;
+
+    CURSOR c_products_price IS
+        SELECT P.COD_PRODUCTO, P.PRECIO_UNITARIO
+        FROM PRODUCTOS P;
+BEGIN
+
+    v_percentage := 1 + (p_percentage / 100);
+    DBMS_OUTPUT.PUT_LINE('percentage: ' || v_percentage);
+
+    FOR reg IN c_products_price LOOP
+        v_original_price := reg.PRECIO_UNITARIO;
+        UPDATE PRODUCTOS P 
+        SET P.PRECIO_UNITARIO = v_original_price * v_percentage
+        WHERE P.COD_PRODUCTO = reg.COD_PRODUCTO; 
+    END LOOP;
+END;
+/
+
+BEGIN
+    SP_INCREASE_PRODUCTS_PRICE_BY_PERCENTAGE(100);
+END;
+/
+
+-- Ejercicio 8
+SELECT * FROM CLIENTES;
+SELECT * FROM FACTURAS;
+
+SELECT C.NOMBRES 
+FROM CLIENTES C
+LEFT JOIN FACTURAS F ON F.COD_CLIENTE = C.COD_CLIENTE
+WHERE F.COD_CLIENTE IS NULL;
+
+CREATE OR REPLACE PROCEDURE SP_GET_CLIENTS_WITHOUT_INVOICES
+IS
+    CURSOR c_clients IS
+        SELECT C.NOMBRES 
+        FROM CLIENTES C
+        LEFT JOIN FACTURAS F ON F.COD_CLIENTE = C.COD_CLIENTE
+        WHERE F.COD_CLIENTE IS NULL;
+BEGIN
+    FOR reg IN c_clients LOOP
+        DBMS_OUTPUT.PUT_LINE('Cliente sin factura: ' || reg.NOMBRES);
+    END LOOP;
+END SP_GET_CLIENTS_WITHOUT_INVOICES;
+/
+
+BEGIN
+    SP_GET_CLIENTS_WITHOUT_INVOICES();
+END;
+/
+
+-- Ejercicio 9
+CREATE OR REPLACE PROCEDURE SP_UPDATE_PRODUCT(
+    p_product_code VARCHAR2,
+    p_product_description VARCHAR2,
+    p_unit_price NUMBER)
+IS
+BEGIN
+    UPDATE PRODUCTOS P 
+    SET 
+        P.DESCRIPCION = p_product_description, 
+        P.PRECIO_UNITARIO = p_unit_price
+    WHERE P.COD_PRODUCTO = p_product_code;
+END;
+/
+
+BEGIN
+    SP_UPDATE_PRODUCT('P0001', 'Memoria DDR 256 Mb', 1120);
+END;
+/
+
+-- Ejercicio 10
+SELECT * FROM DEPARTAMENTOS;
+SELECT * FROM EMPLEADOS E;
+SELECT * FROM CATEGORIAS;
+
+SELECT 
+    D.NOMBRE AS DEPARTAMENTO,
+    C.DESCRIPCION AS CATEGORIA,
+    E.NOMBRE || ' ' || E.APELLIDO AS NOMBRE_COMPLETO,
+    E.EMAIL,
+    E.TELEFONO,
+    E.FECHA_ALTA,
+    E.CUIL
+FROM EMPLEADOS E
+LEFT JOIN CATEGORIAS C ON C.CODIGO = E.CATEGORIA_CODIGO
+JOIN DEPARTAMENTOS D ON D.DPTO_ID = E.DEPARTAMENTO_ID
+WHERE C.SALARIO_MAX <= 880000;
+
+CREATE OR REPLACE PROCEDURE SP_REPORT_POOR_EMPLOYEES(p_sal_max NUMBER)
+IS
+    CURSOR c_poor_employees IS
+        SELECT 
+            D.NOMBRE AS DEPARTAMENTO,
+            C.DESCRIPCION AS CATEGORIA,
+            E.NOMBRE || ' ' || E.APELLIDO AS NOMBRE_COMPLETO,
+            E.EMAIL,
+            E.TELEFONO,
+            E.FECHA_ALTA,
+            E.CUIL
+        FROM EMPLEADOS E
+        JOIN CATEGORIAS C ON C.CODIGO = E.CATEGORIA_CODIGO
+        JOIN DEPARTAMENTOS D ON D.DPTO_ID = E.DEPARTAMENTO_ID
+        WHERE C.SALARIO_MAX <= p_sal_max;
+BEGIN
+    FOR reg IN c_poor_employees LOOP
+        DBMS_OUTPUT.PUT_LINE(
+            'El empleado ' || reg.NOMBRE_COMPLETO || 
+            ' tiene un salario menor o igual ' || p_sal_max ||
+            ' por pertenecer a la categoría ' || reg.CATEGORIA ||
+            ' del departamento de ' || reg.DEPARTAMENTO
+        );
+        DBMS_OUTPUT.PUT_LINE(' ');
+    END LOOP;
+END SP_REPORT_POOR_EMPLOYEES;
+/
+
+BEGIN
+    SP_REPORT_POOR_EMPLOYEES(880000);
+END;
